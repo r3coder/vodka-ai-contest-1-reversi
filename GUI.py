@@ -140,8 +140,8 @@ def Draw(screen):
                 col = GUI.COL.white
             
             pygame.draw.circle(screen, col,
-                    [GUI.board.rect[0]+(ix+0.5)*GUI.board.cellSize,
-                    GUI.board.rect[1]+(iy+0.5)*GUI.board.cellSize], GUI.board.pieceSize)
+                    [GUI.board.rect[0]+(iy+0.5)*GUI.board.cellSize,
+                    GUI.board.rect[1]+(ix+0.5)*GUI.board.cellSize], GUI.board.pieceSize)
 
     # Reset Button and Start Button
     CreateButton(screen, GUI.buttonReset)
@@ -211,7 +211,7 @@ def ResetGame():
     GUI.pBlackMiss = 0
     GUI.pWhiteTimeSegment = []
     GUI.pWhiteMiss = 0
-
+    print(rg.history)
     rg.Initialize()
 
 def StartGame():
@@ -240,8 +240,8 @@ def MouseDown(mouse):
     # print(mouse[0], mouse[1])
     if mouse[0] >= GUI.board.rect[0] and mouse[0] < GUI.board.rect[0] + GUI.board.cellSize * 8 \
         and mouse[1] >= GUI.board.rect[1] and mouse[1] < GUI.board.rect[1] + GUI.board.cellSize * 8:
-        cx = (mouse[0] - GUI.board.rect[0]) // GUI.board.cellSize
-        cy = (mouse[1] - GUI.board.rect[1]) // GUI.board.cellSize
+        cy = (mouse[0] - GUI.board.rect[0]) // GUI.board.cellSize
+        cx = (mouse[1] - GUI.board.rect[1]) // GUI.board.cellSize
         # TODO : Place actions here
         if GUI.appState == 1:
             if GUI.playerBlack == 0 and rg.gamestate == 1:
@@ -261,11 +261,12 @@ def MouseDown(mouse):
             GUI.buttonStart.active = False
             StartGame()
     elif MouseCheckRect(mouse, GUI.agent.rect): # Select AI
-        for idx in range(len(GUI.AIAgentsWhite)):
-            if MouseCheckRect(mouse, [GUI.agent.rect[0]+10    ,GUI.agent.rect[1]+120+40*idx,180,30]):
-                GUI.playerBlack = idx
-            if MouseCheckRect(mouse, [GUI.agent.rect[0]+10+210,GUI.agent.rect[1]+120+40*idx,180,30]):
-                GUI.playerWhite = idx
+        if GUI.appState == 0:
+            for idx in range(len(GUI.AIAgentsWhite)):
+                if MouseCheckRect(mouse, [GUI.agent.rect[0]+10    ,GUI.agent.rect[1]+120+40*idx,180,30]):
+                    GUI.playerBlack = idx
+                if MouseCheckRect(mouse, [GUI.agent.rect[0]+10+210,GUI.agent.rect[1]+120+40*idx,180,30]):
+                    GUI.playerWhite = idx
 
 def MouseUp():
     GUI.buttonStart.clicked = False

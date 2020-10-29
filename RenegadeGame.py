@@ -18,7 +18,7 @@ class Game:
         self.gamestate = 1
 
         # board information [0:empty] [1:black piece] [2:white piece]
-        self.board = np.zeros((8,8))
+        self.board = np.zeros((8,8),dtype=int)
 
         # history of placed values
         self.history = list()
@@ -54,7 +54,6 @@ class Game:
                 self.gamestate = 4
         pass
     
-
     # Check if a player is unavailable to place a piece
     def CheckPlayerIsAvailable(self, player):
         assert type(player) is int and player in [1, 2]
@@ -62,20 +61,6 @@ class Game:
             return True
         return False
 
-    """ PiecesCount
-        Return number of pieces
-        = return(int, int, int) black pieces, white pieces, empty pieces
-    """
-    def GetPiecesCount(self):
-        pb = 0
-        pw = 0
-        for ix in range(8):
-            for iy in range(8):
-                if self.board[ix, iy] == 1:
-                    pb += 1
-                elif self.board[ix, iy] == 2:
-                    pw += 1
-        return pb, pw, 64-pb-pw
     
     # Changes Activated Player
     def ChangePlayer(self):
@@ -121,7 +106,7 @@ class Game:
                         self.board[val] = player
             self.ChangePlayer()
             # Append Data to history
-            self.history.append(pos)
+            self.history.append((player, pos))
             # If opponent's move is unavailable, return turn
             if len(self.GetPossiblePositions(self.gamestate)) == 0:
                 self.ChangePlayer()
@@ -129,6 +114,27 @@ class Game:
             return True
         else:
             return False
+
+    ##############################
+
+    # You can use only functions below this line
+
+    ##############################
+
+    """ PiecesCount
+        Return number of pieces
+        = return(int, int, int) black pieces, white pieces, empty pieces
+    """
+    def GetPiecesCount(self):
+        pb = 0
+        pw = 0
+        for ix in range(8):
+            for iy in range(8):
+                if self.board[ix, iy] == 1:
+                    pb += 1
+                elif self.board[ix, iy] == 2:
+                    pw += 1
+        return pb, pw, 64-pb-pw
 
     """ GetReversiblePiecesCount
         Get the count of the reversible pieces
