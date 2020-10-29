@@ -1,0 +1,5 @@
+
+.vscode/settings.json
+__pycache__/RenegadeGame.cpython-39.pyc
+Agents/__pycache__/__init__.cpython-39.pyc
+*.pyc
