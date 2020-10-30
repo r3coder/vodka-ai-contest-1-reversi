@@ -1,7 +1,7 @@
 
 # Import Basic Objects
 import numpy as np
-
+import random
 
 class Game:
     """
@@ -17,7 +17,7 @@ class Game:
         # Initial game state start from black's turn
         self.gamestate = 1
 
-        # board information [0:empty] [1:black piece] [2:white piece]
+        # board information [0:empty] [1:black piece] [2:white piece] [3:Hole]
         self.board = np.zeros((8,8),dtype=int)
 
         # history of placed values
@@ -27,7 +27,7 @@ class Game:
         self.Initialize()
 
     # Initialize the board
-    def Initialize(self, preset=None):
+    def Initialize(self, preset=None, hole=4):
         # Start with black
         self.gamestate = 1 
 
@@ -40,6 +40,13 @@ class Game:
         self.board[3,4] = 1
         self.board[4,3] = 1
         self.board[4,4] = 2
+
+        # Add hole to outside area
+        if (hole > 0):
+            l = list(range(0, 8)) + list(range(56, 64)) + list(range(8, 56, 8)) + list(range(15, 63, 8))
+            random.shuffle(l)
+            for i in range(0, hole):
+                self.board[l[i]%8, l[i]//8] = 3
 
     # Update the game progress
     def CheckGame(self):
@@ -84,6 +91,10 @@ class Game:
         # Gamestate doesn't allow to place pieces
         if self.gamestate not in [1, 2]:
             return False
+        
+        # Return if placing to hole
+        if pos in self.GetHolePositions():
+            return False
 
         if pos in self.GetPossiblePositions(player):
             self.board[pos] = player
@@ -94,7 +105,7 @@ class Game:
                 if len(dpl) < 2:
                     continue
                 for val in dpl:
-                    if self.board[val] == 0: # If there is empty Square then skip
+                    if self.board[val] == 0 or self.board[val] == 3: # If there is empty square and hole, then skip
                         break
                     elif self.board[val] == player: # Found pieces to reverse
                         place = True
@@ -121,20 +132,35 @@ class Game:
 
     ##############################
 
-    """ PiecesCount
+    """ GetHolePositions
+        Return hole positions
+        = return(list of tuple(int, int)) location of holes
+    """
+    def GetHolePositions(self):
+        out = list()
+        for ix in range(8):
+            for iy in range(8):
+                if self.board[ix, iy] == 3:
+                    out += (ix, iy)
+        return out
+    
+    """ GetPiecesCount
         Return number of pieces
         = return(int, int, int) black pieces, white pieces, empty pieces
     """
     def GetPiecesCount(self):
         pb = 0
         pw = 0
+        pe = 0
         for ix in range(8):
             for iy in range(8):
                 if self.board[ix, iy] == 1:
                     pb += 1
                 elif self.board[ix, iy] == 2:
                     pw += 1
-        return pb, pw, 64-pb-pw
+                elif self.board[ix, iy] == 0:
+                    pe += 1
+        return pb, pw, pe
 
     """ GetReversiblePiecesCount
         Get the count of the reversible pieces
@@ -154,7 +180,7 @@ class Game:
             if len(dpl) < 2:
                 continue
             for idl, val in enumerate(dpl):
-                if self.board[val] == 0: # If there is empty Square then skip
+                if self.board[val] == 0 or self.board[val] == 3: # If there is empty square and hole, then skip
                     break
                 elif self.board[val] == player: # Found pieces to reverse
                     out += idl

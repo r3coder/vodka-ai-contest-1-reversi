@@ -5,8 +5,10 @@ Description : Simply randomly picks from possible moves
 """
 import pygame
 import timeit
+import random
 
 import RenegadeGame
+
 
 rg = RenegadeGame.Game()
 
@@ -35,10 +37,6 @@ class GUI:
     pBlackMiss = 0
     pWhiteTimeSegment = []
     pWhiteMiss = 0
-
-    # Time
-    class time:
-        start = 0
         
 
     # Fonts
@@ -87,8 +85,10 @@ class GUI:
     class board:
         rect = [60, 60]
         cellSize = 60
+        moveSize = 10
         outlineCol = (0, 0, 0)
         fillCol = (60, 200, 60)
+        holeCol = (90, 0, 0)
         pieceSize = 25
 
 
@@ -120,28 +120,42 @@ def Draw(screen):
     # Draw Cells
     for ix in range(8):
         for iy in range(8):
-            pygame.draw.rect(screen, GUI.board.fillCol,
-                    [GUI.board.rect[0]+ix*GUI.board.cellSize,
-                    GUI.board.rect[1]+iy*GUI.board.cellSize,
+            if rg.board[ix, iy] == 3:
+                col = GUI.board.holeCol
+            else:
+                col = GUI.board.fillCol
+            pygame.draw.rect(screen, col,
+                    [GUI.board.rect[0]+iy*GUI.board.cellSize,
+                    GUI.board.rect[1]+ix*GUI.board.cellSize,
                     GUI.board.cellSize,GUI.board.cellSize],0)
             pygame.draw.rect(screen, GUI.board.outlineCol, 
-                    [GUI.board.rect[0]+ix*GUI.board.cellSize,
-                    GUI.board.rect[1]+iy*GUI.board.cellSize,
+                    [GUI.board.rect[0]+iy*GUI.board.cellSize,
+                    GUI.board.rect[1]+ix*GUI.board.cellSize,
                     GUI.board.cellSize,GUI.board.cellSize],2)
 
-    # Draw
+    # Draw 
     for ix in range(8):
         for iy in range(8):
             if rg.board[ix, iy] == 0:
                 continue
             elif rg.board[ix, iy] == 1: # black player
                 col = GUI.COL.black
-            elif rg.board[ix, iy] == 2:
+            elif rg.board[ix, iy] == 2: # white player
                 col = GUI.COL.white
-            
+            elif rg.board[ix, iy] == 3: # hole
+                continue
             pygame.draw.circle(screen, col,
                     [GUI.board.rect[0]+(iy+0.5)*GUI.board.cellSize,
                     GUI.board.rect[1]+(ix+0.5)*GUI.board.cellSize], GUI.board.pieceSize)
+
+    # Draw Possiblemoves
+    if rg.gamestate in [1, 2]:
+        lpm = rg.GetPossiblePositions(rg.gamestate)
+        for i in lpm:
+            pygame.draw.rect(screen, GUI.COL.lightRed,
+                    [GUI.board.rect[0]+(i[1]+0.5)*GUI.board.cellSize-GUI.board.moveSize/2,
+                    GUI.board.rect[1]+(i[0]+0.5)*GUI.board.cellSize-GUI.board.moveSize/2,
+                    GUI.board.moveSize,GUI.board.moveSize],0)
 
     # Reset Button and Start Button
     CreateButton(screen, GUI.buttonReset)
@@ -215,25 +229,25 @@ def ResetGame():
     rg.Initialize()
 
 def StartGame():
-    GUI.time.start = timeit.default_timer()
+    pass
 
 def AgentAction():
     if GUI.playerBlack != 0 and rg.gamestate == 1 and GUI.appState == 1:
+        a = timeit.default_timer()
         v = rg.PlacePiece(1, GUI.AIAgentsBlack[GUI.playerBlack].NextMove(rg, 1))
-        if v == False: # Skip turn
-            GUI.playerBlack += 1
-            rg.gamestate = 2
-        a = timeit.default_timer()
-        GUI.pBlackTimeSegment.append(a-GUI.time.start)
-        GUI.time.start = a
+        GUI.pBlackTimeSegment.append(timeit.default_timer()-a)
+        if v == False: # Place at random position
+            GUI.pBlackMiss += 1
+            ind = random.randint(0,len(rg.GetPossiblePositions(1))-1)
+            rg.PlacePiece(1, rg.GetPossiblePositions(1)[ind])
     if GUI.playerWhite != 0 and rg.gamestate == 2 and GUI.appState == 1:
-        v = rg.PlacePiece(2, GUI.AIAgentsBlack[GUI.playerWhite].NextMove(rg, 2))
-        if v == False: # Skip turn
-            GUI.playerWhite += 1
-            rg.gamestate = 2
         a = timeit.default_timer()
-        GUI.pWhiteTimeSegment.append(a-GUI.time.start)
-        GUI.time.start = a
+        v = rg.PlacePiece(2, GUI.AIAgentsBlack[GUI.playerWhite].NextMove(rg, 2))
+        GUI.pWhiteTimeSegment.append(timeit.default_timer()-a)
+        if v == False: # Place at random position
+            GUI.pWhiteMiss += 1
+            ind = random.randint(0,len(rg.GetPossiblePositions(2))-1)
+            rg.PlacePiece(2, rg.GetPossiblePositions(2)[ind])
         
 
 def MouseDown(mouse):
