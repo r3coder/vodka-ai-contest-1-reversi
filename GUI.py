@@ -1,16 +1,16 @@
 """
 Writer : Lee Seunghyun
 Contact : coder@dgist.ac.kr
-Description : Simply randomly picks from possible moves
+Description : Test GUI Code
 """
 import pygame
 import timeit
 import random
 
-import RenegadeGame
+import ReversiGame
 
 
-rg = RenegadeGame.Game()
+rg = ReversiGame.Game()
 
 ##############################
 # Include AI here
@@ -292,7 +292,7 @@ def Main():
     
     screen = pygame.display.set_mode((1000,600))
     pygame.display.set_icon(pygame.image.load("./Resources/logo.png"))
-    pygame.display.set_caption("VODKA Renegade AI Contest - Practice")
+    pygame.display.set_caption("VODKA Reversi AI Contest - Practice")
     running = True
 
     # Add every agents to white, too

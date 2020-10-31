@@ -81,6 +81,8 @@ Renegade, 리버시, 뒤집기 등 여러 이름으로 불리는 게임입니다
 * pygame 2.0.0 >=
 * numpy 1.19.3 >=
 
+`GUI.py` 및 `GUIContest.py` 에서는 Hack 폰트에 최적화되어 있습니다. 설치하지 않더라도 프로그램 기동에는 문제가 없으나, 글씨 위치가 이상하게 보일 수 있습니다. [Hack 폰트 설치 페이지](https://sourcefoundry.org/hack/)
+
 본 프로젝트는 다음과 같은 파일을 포함하고 있습니다.
 
 ## RenegadeGame.py

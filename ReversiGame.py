@@ -1,3 +1,8 @@
+"""
+Writer : Lee Seunghyun
+Contact : coder@dgist.ac.kr
+Description : Reversi game agent
+"""
 
 # Import Basic Objects
 import numpy as np
@@ -68,7 +73,6 @@ class Game:
             return True
         return False
 
-    
     # Changes Activated Player
     def ChangePlayer(self):
         if self.gamestate == 1:
