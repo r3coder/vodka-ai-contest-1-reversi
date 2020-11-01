@@ -56,6 +56,8 @@ class COLOR:
     green = (0,255,0)
     greenBright = (60, 200, 60)
     blue = (0,0,255)
+    blueBright = (60, 60, 200)
+    yellow = (255, 255, 100)
 
 # Fonts
 pygame.font.init()
@@ -134,11 +136,11 @@ def DrawHistory(screen, his, position=[60, 540], cell=48):
         if i >= his.size:
             continue
         if his.Get(i) == 0:
-            col = COLOR.gray
-        elif his.Get(i) == 1:
             col = COLOR.black
-        elif his.Get(i) == 2:
+        elif his.Get(i) == 1:
             col = COLOR.white
+        elif his.Get(i) == 2:
+            col = COLOR.gray
         pygame.draw.circle(screen, COLOR.black, AddList(position, [(i%10+0.5)*cell, (i//10)*cell+60]), cell*0.45)
         pygame.draw.circle(screen, col, AddList(position, [(i%10+0.5)*cell, (i//10)*cell+60]), cell*0.4)
 

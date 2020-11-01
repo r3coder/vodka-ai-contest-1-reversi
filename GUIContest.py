@@ -31,16 +31,28 @@ def MouseDownModeContest():
     VAR.ButtonsMode.modeContest.highlight = True
     VAR.mode = 1
 
-def MouseDownPracticeAIChange(pl, index):
-    VAR.player[pl] = VAR.AIAgents[index]
-
-def MouseDownPracticeReset():
+def Reset():
     VAR.game.Initialize()
+    VAR.timeSeg = [None, [], []]
+    VAR.miss = [None, 0, 0]
     VAR.state = 0
 
+def Start():
+    if VAR.game.gamestate in [3,4,5]:
+        Reset()
+    VAR.state = 1
+
+def MouseDownPracticeReset():
+    VAR.ButtonsPractice.reset.clicked = True
+    Reset()
+
+def MouseDownPracticeRepeat():
+    VAR.ButtonsPractice.repeat.clicked = True
+    VAR.repeat = not VAR.repeat
+
 def MouseDownPracticeStart():
-    if VAR.state == 0:
-        VAR.state = 1
+    VAR.ButtonsPractice.start.clicked = True
+    Start()
 
 
 class Player:
@@ -52,11 +64,12 @@ class VAR:
     # History
     gameHistory = Queue()
 
-    # App State [0:Ready, mode and AI change is possible]
-    state = 0
-
     # Player [None:Player] [Class - Selected AI]
     player = [None, None, None]
+    playerHighlight = [None, 0, 0]
+
+    timeSeg = [None, [], []]
+    miss = [None, 0, 0]
     
     ##############################
     # Put your agents also here
@@ -67,6 +80,10 @@ class VAR:
 
     # App mode [0:Practice] [1:Contest]
     mode = 0
+
+    # App State for practice [0:Ready, mode and AI change is possible]
+    state = 0
+    repeat = False
 
     # Clock for FPS
     clock = None
@@ -81,8 +98,9 @@ class VAR:
         modeContest = UIButton([930, 30, 300, 50],"Contest Mode", onMouseDown=MouseDownModeContest)
 
     class ButtonsPractice:
-        reset = UIButton([600, 100, 150, 50],"Reset", onMouseDown=MouseDownPracticeReset)
-        start = UIButton([800, 100, 150, 50],"Start", onMouseDown=MouseDownPracticeStart)
+        reset = UIButton([600, 100, 170, 50],"Reset", col=COLOR.blueBright, onMouseDown=MouseDownPracticeReset)
+        start = UIButton([800, 100, 170, 50],"Start", col=COLOR.green, onMouseDown=MouseDownPracticeStart)
+        repeat = UIButton([1000, 100, 170, 50],"Repeat", col=COLOR.grayBright, colHighlight=COLOR.redBright, onMouseDown=MouseDownPracticeRepeat)
         select = []
         selectPosition = [600, 160]
 
@@ -95,13 +113,30 @@ from Agents import ExampleMC
 ##############################
 
 def Execute():
-    pass
+    if VAR.state == 1:
+        # Execute AI
+        if VAR.game.gamestate in [1,2]:
+            g = VAR.game.gamestate
+            if VAR.player[g] != None:
+                t_ = timeit.default_timer()
+                v = VAR.game.PlacePiece(g, VAR.AIAgents[g].NextMove(VAR.AIAgents[g], VAR.game, g))
+                VAR.timeSeg[g].append(timeit.default_timer()-t_)
+                if not v: # Place at random position
+                    VAR.miss[g] += 1
+                    ind = random.randint(0,len(VAR.game.GetPossiblePositions(g))-1)
+                    VAR.game.PlacePiece(g, VAR.game.GetPossiblePositions(g)[ind])
+    if VAR.state == 1 and VAR.game.gamestate in [3, 4, 5]:
+        VAR.state = 0
+        VAR.gameHistory.Append(VAR.game.gamestate - 3)
+        if VAR.repeat:
+            Start()
 
 
 def Draw(screen):
     # Fill Screen With White
     screen.fill((255, 255, 255))
     DrawText(screen, [10, 690], "fps:"+str(int(VAR.clock.get_fps())), font="Small")
+    
     # Draw Gameboard and simple information
     DrawText(screen, AddList(VAR.UI.boardPosition, [0, -50]), VAR.gamestateText[VAR.game.gamestate])
     DrawBoard(screen, VAR.game, VAR.UI.boardPosition, VAR.UI.boardCellSize)
@@ -114,22 +149,38 @@ def Draw(screen):
     DrawButton(screen, VAR.ButtonsMode.modePractice)
     DrawButton(screen, VAR.ButtonsMode.modeContest)
 
+    
 
     if VAR.mode == 0:
         # Draw practice buttons
         DrawButton(screen, VAR.ButtonsPractice.reset)
+        if VAR.state == 1:
+            VAR.ButtonsPractice.start.active = False
+        else:
+            VAR.ButtonsPractice.start.active = True
         DrawButton(screen, VAR.ButtonsPractice.start)
+        VAR.ButtonsPractice.repeat.highlight = VAR.repeat
+        DrawButton(screen, VAR.ButtonsPractice.repeat)
 
         # Selection Draw
         t = [None, "Black", "White"]
         for i in range(1,3):
             bp = AddList(VAR.ButtonsPractice.selectPosition, [(i-1)*330,0])
             DrawText(screen, AddList(bp, [0,0]), t[i] + " Player")
-            s = "Segment Time %2.4f\nTime Total % 2.4f\nMiss %d"%(2,3,0)
+            if len(VAR.timeSeg[i]) == 0:
+                seg = 0
+            else:
+                seg = VAR.timeSeg[i][-1]
+            s = "Segment Time %2.4f\nTime Total % 2.4f\nMiss %d"%(seg,sum(VAR.timeSeg[i]),VAR.miss[i])
             DrawTextMultiline(screen, AddList(bp, [0,40]), s)
             
             for ia in range(len(VAR.AIAgents)):
                 DrawButton(screen, VAR.ButtonsPractice.select[i-1][ia])
+        # Set Highlight Active
+        for i in range(1,3):
+            for ix in range(len(VAR.AIAgents)):
+                VAR.ButtonsPractice.select[i-1][ix].highlight = False # Highlight 
+            VAR.ButtonsPractice.select[i-1][VAR.playerHighlight[i]].highlight = True
 
     # Finally, Flip
     pygame.display.flip()
@@ -147,12 +198,35 @@ def EventMouseDown(mouse):
         VAR.ButtonsMode.modePractice.onMouseDown()
     elif MouseCheckRect(mouse, VAR.ButtonsMode.modeContest.rect):
         VAR.ButtonsMode.modeContest.onMouseDown()
+    elif VAR.mode == 0: # Practice Mode
+        if MouseCheckRect(mouse, VAR.ButtonsPractice.reset.rect):
+            VAR.ButtonsPractice.reset.onMouseDown()
+        elif MouseCheckRect(mouse, VAR.ButtonsPractice.start.rect):
+            VAR.ButtonsPractice.start.onMouseDown()
+        elif MouseCheckRect(mouse, VAR.ButtonsPractice.repeat.rect):
+            VAR.ButtonsPractice.repeat.onMouseDown()
+        if VAR.state == 0:
+            for i in range(1,3):
+                for ix in range(len(VAR.AIAgents)): # Activator
+                    if MouseCheckRect(mouse, VAR.ButtonsPractice.select[i-1][ix].rect):
+                        VAR.ButtonsPractice.select[i-1][ix].clicked = True
+                        if ix == 0:
+                            VAR.player[i] = None
+                        else:
+                            VAR.player[i] = VAR.AIAgents[ix]()
+                        VAR.playerHighlight[i] = ix
+
 
 def EventMouseUp():
     VAR.ButtonsMode.modePractice.clicked = False
     VAR.ButtonsMode.modeContest.clicked = False
     VAR.ButtonsPractice.reset.clicked = False
     VAR.ButtonsPractice.start.clicked = False
+    VAR.ButtonsPractice.repeat.clicked = False
+    for b in VAR.ButtonsPractice.select[0]:
+        b.clicked = False
+    for b in VAR.ButtonsPractice.select[1]:
+        b.clicked = False
 
 def Main():
     pygame.init()
