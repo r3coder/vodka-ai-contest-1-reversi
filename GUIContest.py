@@ -36,6 +36,9 @@ def Reset():
     VAR.timeSeg = [None, [], []]
     VAR.miss = [None, 0, 0]
     VAR.state = 0
+    for i in range(1,3):
+        if VAR.player[i] != None:
+            VAR.player[i].Initialize(VAR.game, i)
 
 def Start():
     if VAR.game.gamestate in [3,4,5]:

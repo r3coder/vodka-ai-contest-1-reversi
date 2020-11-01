@@ -9,13 +9,14 @@ import random
 
 class ExampleMC:
     def __init__(self):
-
-        self.Initialize()
+        pass
 
     """ Initialize
         Called between every game, reset every other stuffs if you use in-game
+        - game(RenegadeGame) game object that holding game information
+        = player(int) player [1:black] [2:white]
     """
-    def Initialize(self):
+    def Initialize(self, game, player):
         pass
 
     """ NextMove
