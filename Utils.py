@@ -36,12 +36,20 @@ def AddList(l1, l2):
         out.append(l1[i]+l2[i])
     return out
 
+def MouseCheckRect(mouse, rect):
+    if mouse[0]>=rect[0] and mouse[0]<rect[0]+rect[2] and mouse[1]>=rect[1] and mouse[1]<rect[1]+rect[3]:
+        return True
+    else:
+        return False
+
 import pygame
 
 class COLOR:
     black = (0,0,0)
     white = (255,255,255)
-    gray = (100,100,100)
+    grayBright = (200,200,200)
+    gray = (150,150,150)
+    grayDark = (100,100,100)
     red = (255,0,0)
     redBright = (200, 60, 60)
     redDark = (90, 0, 0)
@@ -56,14 +64,26 @@ fontBig = pygame.font.SysFont(fontFamily, 30)
 fontMiddle = pygame.font.SysFont(fontFamily, 24)
 fontSmall = pygame.font.SysFont(fontFamily, 18)
 
-def DrawText(screen, position, text, col=COLOR.black, font="Big", align="lt"):
+def FindFont(font):
     assert font in ["Big", "Middle", "Small"]
     if font == "Big":
-        f = fontBig
+        return fontBig
     elif font == "Middle":
-        f = fontMiddle
+        return  fontMiddle
     elif font == "Small":
-        f = fontSmall
+        return  fontSmall
+
+def DrawTextMultiline(screen, position, text, col=COLOR.black, font="Middle", lineGap = 30):
+    f = FindFont(font)
+    text = text.split("\n")
+    for i in range(len(text)):
+        to = f.render(text[i], False, col)    
+        tr = to.get_rect()
+        tr.center = (position[0] + tr.w/2, position[1] + tr.h/2 + lineGap*i)
+        screen.blit(to, tr)    
+
+def DrawText(screen, position, text, col=COLOR.black, font="Big", align="lt"):
+    f = FindFont(font)
     to = f.render(text, False, col)    
     tr = to.get_rect()
     if   align[0] == "l": # Align horizontal [l, c, r]
@@ -121,4 +141,40 @@ def DrawHistory(screen, his, position=[60, 540], cell=48):
             col = COLOR.white
         pygame.draw.circle(screen, COLOR.black, AddList(position, [(i%10+0.5)*cell, (i//10)*cell+60]), cell*0.45)
         pygame.draw.circle(screen, col, AddList(position, [(i%10+0.5)*cell, (i//10)*cell+60]), cell*0.4)
-    
+
+class UIButton:
+    def __init__(self, rect, text, active = True, highlight = False, onMouseDown = None, onMouseUp = None, colText=COLOR.black, col = COLOR.grayBright, colClicked=COLOR.gray, colDeactive = COLOR.grayDark, colHighlight = COLOR.red, colOutline = COLOR.black, outlineWidth = 2, textFont = "Big"):
+        # Basic
+        self.active = active
+        self.highlight = highlight
+        self.clicked = False
+        self.rect = rect
+        self.text = text
+
+        # Functions
+        self.onMouseDown = onMouseDown
+        self.onMouseUp = onMouseUp
+
+        # Colors
+        self.colText = colText
+        self.col = col
+        self.colClicked = colClicked
+        self.colDeactive = colDeactive
+        self.colHighlight = colHighlight
+        self.colOutline = colOutline
+
+        # Others
+        self.outlineWidth = outlineWidth
+        self.textFont = textFont
+
+def DrawButton(screen, button):
+    if not button.active:
+        pygame.draw.rect(screen, button.colDeactive, button.rect, 0)
+    elif button.clicked:
+        pygame.draw.rect(screen, button.colClicked, button.rect, 0)
+    elif button.highlight:
+        pygame.draw.rect(screen, button.colHighlight, button.rect, 0)
+    else:
+        pygame.draw.rect(screen, button.col, button.rect, 0)
+    pygame.draw.rect(screen, button.colOutline, button.rect, button.outlineWidth)
+    DrawText(screen, AddList(button.rect[:2], [button.rect[2]/2, button.rect[3]/2]), button.text, col=COLOR.black, font=button.textFont, align="cm")
