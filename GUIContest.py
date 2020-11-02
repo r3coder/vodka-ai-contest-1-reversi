@@ -15,7 +15,7 @@ import ReversiGame
 # Include AI here
 
 from Agents import ExampleRandom
-from Agents import ExampleMC
+from Agents import ExampleGreedy
 
 ##############################
 
@@ -38,7 +38,10 @@ def Reset():
     VAR.state = 0
     for i in range(1,3):
         if VAR.player[i] != None:
-            VAR.player[i].Initialize(VAR.game, i)
+            try:
+                VAR.player[i].Initialize(VAR.game, i)
+            except:
+                print("Agent %s failed to execute: Initialize"%(type(VAR.player[i]).__name__))
 
 def Start():
     if VAR.game.gamestate in [3,4,5]:
@@ -78,7 +81,7 @@ class VAR:
     # Put your agents also here
     AIAgents = [Player,
                 ExampleRandom.ExampleRandom,
-                ExampleMC.ExampleMC]
+                ExampleGreedy.ExampleGreedy]
     ##############################
 
     # App mode [0:Practice] [1:Contest]
@@ -108,13 +111,6 @@ class VAR:
         selectPosition = [600, 160]
 
 
-##############################
-# Include AI here
-from Agents import ExampleRandom
-from Agents import ExampleMC
-
-##############################
-
 def Execute():
     if VAR.state == 1:
         # Execute AI
@@ -122,13 +118,23 @@ def Execute():
             g = VAR.game.gamestate
             if VAR.player[g] != None:
                 t_ = timeit.default_timer()
-                v = VAR.game.PlacePiece(g, VAR.AIAgents[g].NextMove(VAR.AIAgents[g], VAR.game, g))
+                try:
+                    v = VAR.game.PlacePiece(g, VAR.player[g].NextMove(VAR.game, g))
+                except:
+                    v = False
+                    print("Agent %s failed to execute: NextMove"%(type(VAR.player[g]).__name__))
                 VAR.timeSeg[g].append(timeit.default_timer()-t_)
                 if not v: # Place at random position
                     VAR.miss[g] += 1
                     ind = random.randint(0,len(VAR.game.GetPossiblePositions(g))-1)
                     VAR.game.PlacePiece(g, VAR.game.GetPossiblePositions(g)[ind])
     if VAR.state == 1 and VAR.game.gamestate in [3, 4, 5]:
+        for i in range(1,3):
+            VAR.player[i].Finish(VAR.game, i)
+            try:
+                pass
+            except:
+                print("Agent %s failed to execute: Finish"%(type(VAR.player[i]).__name__))
         VAR.state = 0
         VAR.gameHistory.Append(VAR.game.gamestate - 3)
         if VAR.repeat:

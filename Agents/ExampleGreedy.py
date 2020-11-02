@@ -1,13 +1,11 @@
 """
-Agent name: Example Monte Carlo
+Agent name: Example Greedy
 Writer : Lee Seunghyun
 Contact : coder@dgist.ac.kr
 Description : Select Best move decided by current state
 """
 
-import random
-
-class ExampleMC:
+class ExampleGreedy:
     def __init__(self):
         pass
 
@@ -30,3 +28,11 @@ class ExampleMC:
         for i in l:
             ll.append(game.GetReversiblePiecesCount(player, i))
         return l[ll.index(max(ll))]
+
+    """ Finish
+        Called when every game is end. Use at your wish.
+        - game(RenegadeGame) game object that holding game information
+        = player(int) player [1:black] [2:white]
+    """
+    def Finish(self, game, player):
+        pass

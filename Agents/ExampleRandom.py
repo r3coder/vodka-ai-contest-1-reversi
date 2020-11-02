@@ -28,3 +28,11 @@ class ExampleRandom:
         l = game.GetPossiblePositions(player)
         ind = random.randint(0,len(l)-1)
         return l[random.randint(0,len(l)-1)]
+
+    """ Finish
+        Called when every game is end. Use at your wish.
+        - game(RenegadeGame) game object that holding game information
+        = player(int) player [1:black] [2:white]
+    """
+    def Finish(self, game, player):
+        pass

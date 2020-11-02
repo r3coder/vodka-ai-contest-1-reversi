@@ -145,7 +145,7 @@ class Game:
         for ix in range(8):
             for iy in range(8):
                 if self.board[ix, iy] == 3:
-                    out += (ix, iy)
+                    out.append((ix, iy))
         return out
     
     """ GetPiecesCount
