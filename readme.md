@@ -75,4 +75,4 @@ Shuffle and sort 200000 Elements 0.144050s
 * 제출한 AI Agent 코드는 본 퍼블릭 레포지토리에 공개됩니다.
 
 ## AI Agent 관련 사항
-본 레포지토리의 Wiki 페이지를 참조해 주세요.
+본 레포지토리의 [Wiki 페이지](https://github.com/r3coder/vodka-ai-contest-1-reversi/wiki) 를 참조해 주세요. 
