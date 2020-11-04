@@ -130,9 +130,8 @@ def Execute():
                     VAR.game.PlacePiece(g, VAR.game.GetPossiblePositions(g)[ind])
     if VAR.state == 1 and VAR.game.gamestate in [3, 4, 5]:
         for i in range(1,3):
-            VAR.player[i].Finish(VAR.game, i)
             try:
-                pass
+                VAR.player[i].Finish(VAR.game, i)
             except:
                 print("Agent %s failed to execute: Finish"%(type(VAR.player[i]).__name__))
         VAR.state = 0
