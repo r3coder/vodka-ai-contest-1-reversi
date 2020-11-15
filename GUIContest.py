@@ -19,19 +19,41 @@ from Agents import ExampleGreedy
 
 ##############################
 
+def printColor(msg, col="white", end='\n'):
+    if   col=="red":
+        print('\033[31m'+msg+'\033[0m',end=end)
+    elif col=="yellow":
+        print('\033[33m'+msg+'\033[0m',end=end)
+    elif col=="blue":
+        print('\033[32m'+msg+'\033[0m',end=end)
+    elif col=="green":
+        print('\033[34m'+msg+'\033[0m',end=end)
+    elif col=="magenta":
+        print('\033[35m'+msg+'\033[0m',end=end)
+    elif col=="cyan":
+        print('\033[36m'+msg+'\033[0m',end=end)
+    else:
+        print(msg, end=end)
+
 def MouseDownModePractice():
+    if DEBUG_LEVEL >= 2:
+        printColor("GUI: Practice Mode Clicked", 'magenta')
     VAR.ButtonsMode.modePractice.clicked = True
     VAR.ButtonsMode.modePractice.highlight = True
     VAR.ButtonsMode.modeContest.highlight = False
     VAR.mode = 0
 
 def MouseDownModeContest():
+    if DEBUG_LEVEL >= 2:
+        printColor("GUI: Contest Mode Clicked", 'magenta')
     VAR.ButtonsMode.modeContest.clicked = True
     VAR.ButtonsMode.modePractice.highlight = False
     VAR.ButtonsMode.modeContest.highlight = True
     VAR.mode = 1
 
 def Reset():
+    if DEBUG_LEVEL >= 2:
+        printColor("Initialize Called", 'yellow')
     VAR.game.Initialize()
     VAR.timeSeg = [None, [], []]
     VAR.miss = [None, 0, 0]
@@ -40,26 +62,39 @@ def Reset():
         if VAR.player[i] != None:
             try:
                 VAR.player[i].Initialize(VAR.game, i)
+                if DEBUG_LEVEL >= 2:
+                    printColor("Agent %24s Initalize() Executed"%(type(VAR.player[i]).__name__), 'green')
             except:
-                print("Agent %s failed to execute: Initialize"%(type(VAR.player[i]).__name__))
-
+                if DEBUG_LEVEL >= 1:
+                    printColor("Agent %24s failed to execute: Initialize()"%(type(VAR.player[i]).__name__), 'red')
+            
 def Start():
-    if VAR.game.gamestate in [3,4,5]:
-        Reset()
+    if DEBUG_LEVEL >= 2:
+        printColor("Start Called", 'yellow')
+    Reset()
     VAR.state = 1
 
-def MouseDownPracticeReset():
+def MouseDownPracticeReset():    
+    if DEBUG_LEVEL >= 2:
+        printColor("GUI: Practice - Reset Clicked", 'magenta')
     VAR.ButtonsPractice.reset.clicked = True
+    VAR.repeat = False
     Reset()
 
 def MouseDownPracticeRepeat():
+    if DEBUG_LEVEL >= 2:
+        printColor("GUI: Practice - Repeat Clicked", 'magenta')
     VAR.ButtonsPractice.repeat.clicked = True
     VAR.repeat = not VAR.repeat
 
 def MouseDownPracticeStart():
+    if DEBUG_LEVEL >= 2:
+        printColor("GUI: Practice - Start Clicked", 'magenta')
     VAR.ButtonsPractice.start.clicked = True
     Start()
 
+
+DEBUG_LEVEL = 2
 
 class Player:
     pass
@@ -119,10 +154,14 @@ def Execute():
             if VAR.player[g] != None:
                 t_ = timeit.default_timer()
                 try:
-                    v = VAR.game.PlacePiece(g, VAR.player[g].NextMove(VAR.game, g))
+                    pp = VAR.player[g].NextMove(VAR.game, g)
+                    v = VAR.game.PlacePiece(g, pp)
+                    if DEBUG_LEVEL >= 3:
+                        printColor("Agent %24s placed %s piece to %s"%(type(VAR.player[g]).__name__, "Black" if g == 1 else "White", str(pp)))
                 except:
                     v = False
-                    print("Agent %s failed to execute: NextMove"%(type(VAR.player[g]).__name__))
+                    if DEBUG_LEVEL >= 1:
+                        printColor("Agent %24s failed to execute: NextMove()"%(type(VAR.player[g]).__name__), 'red')
                 VAR.timeSeg[g].append(timeit.default_timer()-t_)
                 if not v: # Place at random position
                     VAR.miss[g] += 1
@@ -132,12 +171,16 @@ def Execute():
         for i in range(1,3):
             try:
                 VAR.player[i].Finish(VAR.game, i)
+                if DEBUG_LEVEL >= 2:
+                    printColor("Agent %24s Finish() Executed"%(type(VAR.player[i]).__name__), 'blue')
             except:
-                print("Agent %s failed to execute: Finish"%(type(VAR.player[i]).__name__))
+                if DEBUG_LEVEL >= 1:
+                    printColor("Agent %24s failed to execute: Finish()"%(type(VAR.player[i]).__name__), 'red')
         VAR.state = 0
         VAR.gameHistory.Append(VAR.game.gamestate - 3)
         if VAR.repeat:
-            Start()
+            Reset()
+            VAR.state = 1
 
 
 def Draw(screen):
@@ -220,9 +263,14 @@ def EventMouseDown(mouse):
                         VAR.ButtonsPractice.select[i-1][ix].clicked = True
                         if ix == 0:
                             VAR.player[i] = None
+                            if DEBUG_LEVEL >= 2:
+                                printColor("Agent %d Changed to Player"%(i), 'yellow')
                         else:
                             VAR.player[i] = VAR.AIAgents[ix]()
+                            if DEBUG_LEVEL >= 2:
+                                printColor("Agent %d Changed to %s"%(i, type(VAR.player[i]).__name__), 'yellow')
                         VAR.playerHighlight[i] = ix
+
 
 
 def EventMouseUp():
