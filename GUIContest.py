@@ -18,6 +18,7 @@ from Agents import ExampleRandom
 from Agents import ExampleGreedy
 from Agents import Nayeon
 from Agents import WhopperHunterNaYeon
+from Agents import hyun
 
 ##############################
 
@@ -120,7 +121,8 @@ class VAR:
                 ExampleRandom.ExampleRandom,
                 ExampleGreedy.ExampleGreedy,
                 Nayeon.Nayeon,
-                WhopperHunterNaYeon.WhopperHunterNaYeon]
+                WhopperHunterNaYeon.WhopperHunterNaYeon,
+                hyun.hyun]
     
     ##############################
 
