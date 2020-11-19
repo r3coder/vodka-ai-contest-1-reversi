@@ -16,6 +16,7 @@ import ReversiGame
 
 from Agents import ExampleRandom
 from Agents import ExampleGreedy
+from Agents import Nayeon
 
 ##############################
 
@@ -116,7 +117,8 @@ class VAR:
     # Put your agents also here
     AIAgents = [Player,
                 ExampleRandom.ExampleRandom,
-                ExampleGreedy.ExampleGreedy]
+                ExampleGreedy.ExampleGreedy,
+                Nayeon.Nayeon]
     ##############################
 
     # App mode [0:Practice] [1:Contest]
