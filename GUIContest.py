@@ -16,6 +16,7 @@ import ReversiGame
 
 from Agents import ExampleRandom
 from Agents import ExampleGreedy
+from Agents import CellValue
 from Agents import Nayeon
 from Agents import WhopperHunterNaYeon
 from Agents import hyun
@@ -120,6 +121,7 @@ class VAR:
     AIAgents = [Player,
                 ExampleRandom.ExampleRandom,
                 ExampleGreedy.ExampleGreedy,
+                CellValue.CellValue,
                 Nayeon.Nayeon,
                 WhopperHunterNaYeon.WhopperHunterNaYeon,
                 hyun.hyun]
