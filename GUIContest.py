@@ -1,101 +1,38 @@
 """
 Writer : Lee Seunghyun
 Contact : coder@dgist.ac.kr
-Description : Simply randomly picks from possible moves
+Description : Contest GUI
 """
 import pygame
 import timeit
 import random
+import numpy as np
+import time
 
-from Utils import Queue, COLOR, AddList, MouseCheckRect, DrawTextMultiline, DrawText, DrawBoard, DrawHistory, UIButton, DrawButton
+from Utils import Queue, COLOR, AddList, MouseCheckRect, DrawTextMultiline, DrawText, DrawBoard, DrawHistory, UIButton, DrawButton, PrintColor
 
 import ReversiGame
 
-##############################
-# Include AI here
 
-from Agents import ExampleRandom
-from Agents import ExampleGreedy
 from Agents import CellValue
 from Agents import Nayeon
 from Agents import WhopperHunterNaYeon
 from Agents import hyun
+from Agents import LHM
+from Agents import ppp
 
-##############################
-
-def printColor(msg, col="white", end='\n'):
-    if   col=="red":
-        print('\033[31m'+msg+'\033[0m',end=end)
-    elif col=="yellow":
-        print('\033[33m'+msg+'\033[0m',end=end)
-    elif col=="blue":
-        print('\033[32m'+msg+'\033[0m',end=end)
-    elif col=="green":
-        print('\033[34m'+msg+'\033[0m',end=end)
-    elif col=="magenta":
-        print('\033[35m'+msg+'\033[0m',end=end)
-    elif col=="cyan":
-        print('\033[36m'+msg+'\033[0m',end=end)
-    else:
-        print(msg, end=end)
-
-def MouseDownModePractice():
-    if DEBUG_LEVEL >= 2:
-        printColor("GUI: Practice Mode Clicked", 'magenta')
-    VAR.ButtonsMode.modePractice.clicked = True
-    VAR.ButtonsMode.modePractice.highlight = True
-    VAR.ButtonsMode.modeContest.highlight = False
-    VAR.mode = 0
-
-def MouseDownModeContest():
-    if DEBUG_LEVEL >= 2:
-        printColor("GUI: Contest Mode Clicked", 'magenta')
-    VAR.ButtonsMode.modeContest.clicked = True
-    VAR.ButtonsMode.modePractice.highlight = False
-    VAR.ButtonsMode.modeContest.highlight = True
-    VAR.mode = 1
-
-def Reset():
-    if DEBUG_LEVEL >= 2:
-        printColor("Initialize Called", 'yellow')
-    VAR.game.Initialize()
-    VAR.timeSeg = [None, [], []]
-    VAR.miss = [None, 0, 0]
-    VAR.state = 0
-    for i in range(1,3):
-        if VAR.player[i] != None:
-            try:
-                VAR.player[i].Initialize(VAR.game, i)
-                if DEBUG_LEVEL >= 2:
-                    printColor("Agent %24s Initalize() Executed"%(type(VAR.player[i]).__name__), 'green')
-            except:
-                if DEBUG_LEVEL >= 1:
-                    printColor("Agent %24s failed to execute: Initialize()"%(type(VAR.player[i]).__name__), 'red')
-            
 def Start():
     if DEBUG_LEVEL >= 2:
-        printColor("Start Called", 'yellow')
+        PrintColor("Start Called", 'yellow')
     Reset()
     VAR.state = 1
 
-def MouseDownPracticeReset():    
+def MouseDownExecute():
     if DEBUG_LEVEL >= 2:
-        printColor("GUI: Practice - Reset Clicked", 'magenta')
-    VAR.ButtonsPractice.reset.clicked = True
-    VAR.repeat = False
-    Reset()
+        PrintColor("GUI: Execute Clicked", 'magenta')
+    VAR.Buttons.execute.clicked = True
+    VAR.state = 1
 
-def MouseDownPracticeRepeat():
-    if DEBUG_LEVEL >= 2:
-        printColor("GUI: Practice - Repeat Clicked", 'magenta')
-    VAR.ButtonsPractice.repeat.clicked = True
-    VAR.repeat = not VAR.repeat
-
-def MouseDownPracticeStart():
-    if DEBUG_LEVEL >= 2:
-        printColor("GUI: Practice - Start Clicked", 'magenta')
-    VAR.ButtonsPractice.start.clicked = True
-    Start()
 
 
 DEBUG_LEVEL = 2
@@ -106,30 +43,31 @@ class Player:
 class VAR:
     game = ReversiGame.Game()
 
-    # History
-    gameHistory = Queue()
+    # Contest Setup
+    playCount = 50
+    playCurrent = 0
+    playTable = list()
 
-    # Player [None:Player] [Class - Selected AI]
-    player = [None, None, None]
-    playerHighlight = [None, 0, 0]
+    # History
+    gameHistory = Queue(length=playCount)
+
+    # Player [Class - Selected AI]
+    playerIndex = [None, None, None]
 
     timeSeg = [None, [], []]
     miss = [None, 0, 0]
     
-    ##############################
-    # Put your agents also here
-    AIAgents = [Player,
-                ExampleRandom.ExampleRandom,
-                ExampleGreedy.ExampleGreedy,
-                CellValue.CellValue,
-                Nayeon.Nayeon,
-                WhopperHunterNaYeon.WhopperHunterNaYeon,
-                hyun.hyun]
+    AIAgents = [CellValue.CellValue(),
+                Nayeon.Nayeon(),
+                WhopperHunterNaYeon.WhopperHunterNaYeon(),
+                hyun.hyun(),
+                LHM.LHM(),
+                ppp.ppp()]
     
-    ##############################
-
-    # App mode [0:Practice] [1:Contest]
-    mode = 0
+    agentWinrate = None # Winrate
+    agentGamecount = None # Game done
+    agentScores = list() # Obtained Score
+    agentGames = list() # Win = 1, Loss = 2, Draw = 3
 
     # App State for practice [0:Ready, mode and AI change is possible]
     state = 0
@@ -142,54 +80,162 @@ class VAR:
     class UI:
         boardPosition = [60, 60]
         boardCellSize = 60
-    
-    class ButtonsMode:
-        modePractice = UIButton([600, 30, 300, 50],"Practice Mode", highlight=True, onMouseDown=MouseDownModePractice)
-        modeContest = UIButton([930, 30, 300, 50],"Contest Mode", onMouseDown=MouseDownModeContest)
 
-    class ButtonsPractice:
-        reset = UIButton([600, 100, 170, 50],"Reset", col=COLOR.blueBright, onMouseDown=MouseDownPracticeReset)
-        start = UIButton([800, 100, 170, 50],"Start", col=COLOR.green, onMouseDown=MouseDownPracticeStart)
-        repeat = UIButton([1000, 100, 170, 50],"Repeat", col=COLOR.grayBright, colHighlight=COLOR.redBright, onMouseDown=MouseDownPracticeRepeat)
+        infoPosition = [580, 30]
+        gamePosition = [580, 400]
+        controlPosition = [160, 560]
+
+    class Buttons:
+        execute = UIButton([340, 600, 140, 60],"Execute", col=COLOR.greenBright, onMouseDown=MouseDownExecute)
+
         select = []
         selectPosition = [600, 160]
 
+# Setup Situation
+def Setup():
+    VAR.playCurrent = 0
+    VAR.gameHistory.Clear()
+    pass
 
-def Execute():
-    if VAR.state == 1:
-        # Execute AI
-        if VAR.game.gamestate in [1,2]:
-            g = VAR.game.gamestate
-            if VAR.player[g] != None:
-                t_ = timeit.default_timer()
-                try:
-                    pp = VAR.player[g].NextMove(VAR.game, g)
-                    v = VAR.game.PlacePiece(g, pp)
-                    if DEBUG_LEVEL >= 3:
-                        printColor("Agent %24s placed %s piece to %s"%(type(VAR.player[g]).__name__, "Black" if g == 1 else "White", str(pp)))
-                except:
-                    v = False
-                    if DEBUG_LEVEL >= 1:
-                        printColor("Agent %24s failed to execute: NextMove()"%(type(VAR.player[g]).__name__), 'red')
-                VAR.timeSeg[g].append(timeit.default_timer()-t_)
-                if not v: # Place at random position
-                    VAR.miss[g] += 1
-                    ind = random.randint(0,len(VAR.game.GetPossiblePositions(g))-1)
-                    VAR.game.PlacePiece(g, VAR.game.GetPossiblePositions(g)[ind])
-    if VAR.state == 1 and VAR.game.gamestate in [3, 4, 5]:
-        for i in range(1,3):
+# Initialize Game
+def InitializeGame():
+    VAR.game.Initialize()
+    VAR.timeSeg = [None, [], []]
+    VAR.miss = [None, 0, 0]
+    
+    for i in range(1,3):
+        if VAR.playerIndex[i] != None:
+            agent = VAR.AIAgents[VAR.playerIndex[i]]
             try:
-                VAR.player[i].Finish(VAR.game, i)
+                t_ = timeit.default_timer()
+                agent.Initialize(VAR.game, i)
+                VAR.timeSeg[i].append(timeit.default_timer()-t_)
                 if DEBUG_LEVEL >= 2:
-                    printColor("Agent %24s Finish() Executed"%(type(VAR.player[i]).__name__), 'blue')
+                    PrintColor("Agent %24s Initalize() Executed"%(type(agent).__name__), 'green')
             except:
                 if DEBUG_LEVEL >= 1:
-                    printColor("Agent %24s failed to execute: Finish()"%(type(VAR.player[i]).__name__), 'red')
-        VAR.state = 0
-        VAR.gameHistory.Append(VAR.game.gamestate - 3)
-        if VAR.repeat:
-            Reset()
-            VAR.state = 1
+                    PrintColor("Agent %24s failed to execute: Initialize()"%(type(agent).__name__), 'red')
+        
+def Move():
+    g = VAR.game.gamestate
+    
+    agent = VAR.AIAgents[VAR.playerIndex[g]]
+    try:
+        t_ = timeit.default_timer()
+        pp = agent.NextMove(VAR.game, g)
+        VAR.timeSeg[g].append(timeit.default_timer()-t_)
+        v = VAR.game.PlacePiece(g, pp)
+        if DEBUG_LEVEL >= 3:
+            PrintColor("Agent %24s placed %s piece to %s"%(type(agent).__name__, "Black" if g == 1 else "White", str(pp)))
+    except:
+        v = False
+        if DEBUG_LEVEL >= 1:
+            PrintColor("Agent %24s failed to execute: NextMove()"%(type(agent).__name__), 'red')
+    
+    if not v: # Place at random position
+        VAR.miss[g] += 1
+        ind = random.randint(0,len(VAR.game.GetPossiblePositions(g))-1)
+        VAR.game.PlacePiece(g, VAR.game.GetPossiblePositions(g)[ind])
+
+def UpdateWinrate():
+    for a in range(len(VAR.AIAgents)):
+        if len(VAR.agentGames[a]) == 0:
+            VAR.agentWinrate[a] = 0.0
+        else:
+            w = 0
+            for i in VAR.agentGames[a]:
+                if i == 1:
+                    w += 1
+            VAR.agentWinrate[a] = w / len(VAR.agentGames[a]) * 100
+
+
+def Finish():
+    for i in range(1,3):
+        agent = VAR.AIAgents[VAR.playerIndex[i]]
+        try:
+            t_ = timeit.default_timer()
+            agent.Finish(VAR.game, i)
+            VAR.timeSeg[i].append(timeit.default_timer()-t_)
+            if DEBUG_LEVEL >= 2:
+                PrintColor("Agent %24s Finish() Executed"%(type(agent).__name__), 'blue')
+        except:
+            if DEBUG_LEVEL >= 1:
+                PrintColor("Agent %24s failed to execute: Finish()"%(type(agent).__name__), 'red')
+
+    # Handling End-game situations
+    VAR.gameHistory.Append(VAR.game.gamestate - 3)
+
+    # TODO : Record Log...?
+    bp, wp = VAR.playerIndex[1], VAR.playerIndex[2]
+    bs, ws = 0, 0
+    g = VAR.game.gamestate
+    if g == 3: # Black wins
+        bs += 10
+        VAR.agentGames[bp].append(1)
+        VAR.agentGames[wp].append(2)
+    elif g == 4:
+        ws += 10
+        VAR.agentGames[bp].append(2)
+        VAR.agentGames[wp].append(1)
+    else:
+        bs += 5
+        ws += 5
+        VAR.agentGames[bp].append(3)
+        VAR.agentGames[wp].append(3)
+
+    bs -= min(VAR.miss[1], 5)
+    ws -= min(VAR.miss[2], 5)
+    bs -= min(max(sum(VAR.timeSeg[1]), 0), 5)
+    ws -= min(max(sum(VAR.timeSeg[2]), 0), 5)
+    VAR.agentGamecount[bp] += 1
+    VAR.agentGamecount[wp] += 1
+    VAR.agentScores[bp].append(bs)
+    VAR.agentScores[wp].append(ws)
+
+    UpdateWinrate()
+
+
+def Execute():
+    if VAR.state == 0: # Idle
+        pass
+    elif VAR.state == 1: # Triggers Start
+        VAR.state = 2
+    elif VAR.state == 2: # Initialize game
+        play = True
+        for i in range(1,3):
+            if VAR.playerIndex[i] == None:
+                PrintColor("Agent is not properly selected", 'red')
+                VAR.state = 0
+                play = False
+        if VAR.playTable[VAR.playerIndex[1]][VAR.playerIndex[2]]:
+            PrintColor("Already Played", 'red')
+            VAR.state = 0
+            play = False
+        if play:
+            InitializeGame()
+            if DEBUG_LEVEL >= 2:
+                PrintColor("Initialized Game", 'yellow')
+            VAR.state = 3
+    elif VAR.state == 3: # Game
+        # Execute AI
+        if VAR.game.gamestate in [1,2]:
+            Move()
+        else: # End of the game
+            VAR.state = 4
+    elif VAR.state == 4: # Pause
+        Finish()
+        if DEBUG_LEVEL >= 2:
+            PrintColor("Finished Game", 'yellow')
+        # Checks Everything is end
+        VAR.playCurrent += 1
+        if VAR.playCount > VAR.playCurrent:
+            VAR.state = 5
+        else:
+            VAR.playTable[VAR.playerIndex[1]][VAR.playerIndex[2]] = True
+            VAR.state = 0
+    elif VAR.state == 5: # Sleep for 1 second and return to initialing       
+        # time.sleep(1)
+        VAR.state = 2
 
 
 def Draw(screen):
@@ -202,111 +248,82 @@ def Draw(screen):
     DrawBoard(screen, VAR.game, VAR.UI.boardPosition, VAR.UI.boardCellSize)
     _t1, _t2, _t3 = VAR.game.GetPiecesCount()
     DrawText(screen, AddList(VAR.UI.boardPosition, [VAR.UI.boardCellSize*8, VAR.UI.boardCellSize*8+10]), "B:{}, W:{}, E:{}".format(_t1, _t2, _t3), font="Small", align="rt")
-    # Draw History (Below Gameboard)
-    DrawHistory(screen, VAR.gameHistory, AddList(VAR.UI.boardPosition, [0, VAR.UI.boardCellSize*8+20]))
+ 
+    DrawButton(screen, VAR.Buttons.execute)
 
-    # Draw menu buttons
-    DrawButton(screen, VAR.ButtonsMode.modePractice)
-    DrawButton(screen, VAR.ButtonsMode.modeContest)
 
-    
-
-    if VAR.mode == 0:
-        # Draw practice buttons
-        DrawButton(screen, VAR.ButtonsPractice.reset)
-        if VAR.state == 1:
-            VAR.ButtonsPractice.start.active = False
-        else:
-            VAR.ButtonsPractice.start.active = True
-        DrawButton(screen, VAR.ButtonsPractice.start)
-        VAR.ButtonsPractice.repeat.highlight = VAR.repeat
-        DrawButton(screen, VAR.ButtonsPractice.repeat)
-
-        # Selection Draw
-        t = [None, "Black", "White"]
-        for i in range(1,3):
-            bp = AddList(VAR.ButtonsPractice.selectPosition, [(i-1)*330,0])
-            DrawText(screen, AddList(bp, [0,0]), t[i] + " Player")
-            if len(VAR.timeSeg[i]) == 0:
-                seg = 0
-            else:
-                seg = VAR.timeSeg[i][-1]
-            s = "Segment Time %2.4f\nTime Total % 2.4f\nMiss %d"%(seg,sum(VAR.timeSeg[i]),VAR.miss[i])
-            DrawTextMultiline(screen, AddList(bp, [0,40]), s)
-            
-            for ia in range(len(VAR.AIAgents)):
-                DrawButton(screen, VAR.ButtonsPractice.select[i-1][ia])
-        # Set Highlight Active
-        for i in range(1,3):
-            for ix in range(len(VAR.AIAgents)):
-                VAR.ButtonsPractice.select[i-1][ix].highlight = False # Highlight 
-            VAR.ButtonsPractice.select[i-1][VAR.playerHighlight[i]].highlight = True
+    DrawText(screen, VAR.UI.infoPosition, "Information", col="brown")
+    DrawText(screen, AddList(VAR.UI.infoPosition, (0, 60)), "Agent Name",col="brown", font="Middle")
+    DrawText(screen, AddList(VAR.UI.infoPosition, (280, 60)), "%9s"%"Games",col="brown", font="Middle")
+    DrawText(screen, AddList(VAR.UI.infoPosition, (420, 60)), "Win Rate",col="brown", font="Middle")
+    DrawText(screen, AddList(VAR.UI.infoPosition, (560, 60)), "%8s"%"Score",col="brown", font="Middle")
+    for i in range(len(VAR.AIAgents)):
+        DrawText(screen, AddList(VAR.UI.infoPosition, (0, 100+i*35)), type(VAR.AIAgents[i]).__name__, font="Middle")
+        DrawText(screen, AddList(VAR.UI.infoPosition, (280, 100+i*35)),
+                "%4d/%4d"%(len(VAR.agentScores[i]), VAR.playCount * 2 * (len(VAR.AIAgents) - 1)), font="Middle")
+        DrawText(screen, AddList(VAR.UI.infoPosition, (420, 100+i*35)),
+                "%8s"%("%2.3f%%"%(VAR.agentWinrate[i])), font="Middle")
+        DrawText(screen, AddList(VAR.UI.infoPosition, (560, 100+i*35)),
+                "%8s"%("%4.2f"%(sum(VAR.agentScores[i]))), font="Middle")
+        
+        for j in range(len(VAR.AIAgents)):
+            if i == j:
+                continue
+            if VAR.playTable[i][j]: # Already Played
+                    continue
+            a = AddList(VAR.UI.controlPosition, (i*25, j*25))
+            b = UIButton((a[0], a[1], 20, 20), "")
+            DrawButton(screen, b)
+        
+    DrawText(screen, VAR.UI.gamePosition, "Current Game", col="red")
+    DrawText(screen, AddList(VAR.UI.gamePosition,(0,40)), "Black Player", col="black", font="Middle")
+    if VAR.playerIndex[1] != None:
+        DrawText(screen, AddList(VAR.UI.gamePosition,(0,70)), type(VAR.AIAgents[VAR.playerIndex[1]]).__name__, col="blue", font="Middle")
+    DrawText(screen, AddList(VAR.UI.gamePosition,(300,40)), "White Player", col="black", font="Middle")
+    if VAR.playerIndex[2] != None:
+        DrawText(screen, AddList(VAR.UI.gamePosition,(300,70)), type(VAR.AIAgents[VAR.playerIndex[2]]).__name__, col="blue", font="Middle")
+    # Draw History
+    DrawHistory(screen, VAR.gameHistory, AddList(VAR.UI.gamePosition, [0, 120]), cell=32, div=20)
 
     # Finally, Flip
     pygame.display.flip()
 
 def EventMouseDown(mouse):
-    # Check if input is in table
-    if MouseCheckRect(mouse, [VAR.UI.boardPosition[0],VAR.UI.boardPosition[1], VAR.UI.boardCellSize*8, VAR.UI.boardCellSize*8]):
-        # Game is available to input, app's state is in game, agent is player
-        if VAR.game.gamestate in [1, 2] and VAR.state == 1 and VAR.player[VAR.game.gamestate] == None:
-            cy = (mouse[0] - VAR.UI.boardPosition[0]) // VAR.UI.boardCellSize
-            cx = (mouse[1] - VAR.UI.boardPosition[0]) // VAR.UI.boardCellSize
-            VAR.game.PlacePiece(VAR.game.gamestate, (cx, cy))
-    # Check title buttons
-    elif MouseCheckRect(mouse, VAR.ButtonsMode.modePractice.rect):
-        VAR.ButtonsMode.modePractice.onMouseDown()
-    elif MouseCheckRect(mouse, VAR.ButtonsMode.modeContest.rect):
-        VAR.ButtonsMode.modeContest.onMouseDown()
-    elif VAR.mode == 0: # Practice Mode
-        if MouseCheckRect(mouse, VAR.ButtonsPractice.reset.rect):
-            VAR.ButtonsPractice.reset.onMouseDown()
-        elif MouseCheckRect(mouse, VAR.ButtonsPractice.start.rect):
-            VAR.ButtonsPractice.start.onMouseDown()
-        elif MouseCheckRect(mouse, VAR.ButtonsPractice.repeat.rect):
-            VAR.ButtonsPractice.repeat.onMouseDown()
-        if VAR.state == 0:
-            for i in range(1,3):
-                for ix in range(len(VAR.AIAgents)): # Activator
-                    if MouseCheckRect(mouse, VAR.ButtonsPractice.select[i-1][ix].rect):
-                        VAR.ButtonsPractice.select[i-1][ix].clicked = True
-                        if ix == 0:
-                            VAR.player[i] = None
-                            if DEBUG_LEVEL >= 2:
-                                printColor("Agent %d Changed to Player"%(i), 'yellow')
-                        else:
-                            VAR.player[i] = VAR.AIAgents[ix]()
-                            if DEBUG_LEVEL >= 2:
-                                printColor("Agent %d Changed to %s"%(i, type(VAR.player[i]).__name__), 'yellow')
-                        VAR.playerHighlight[i] = ix
-
+    if VAR.state == 0:
+        if MouseCheckRect(mouse, VAR.Buttons.execute.rect):
+            VAR.Buttons.execute.onMouseDown()
+        else:
+            for i in range(len(VAR.AIAgents)):
+                for j in range(len(VAR.AIAgents)):
+                    if i == j:
+                        continue
+                    if VAR.playTable[i][j]: # Already Played
+                        continue
+                    a = AddList(VAR.UI.controlPosition, (i*25, j*25))
+                    if MouseCheckRect(mouse, (a[0], a[1], 20, 20)):
+                        VAR.playerIndex = [-1, i, j]
+                        if DEBUG_LEVEL >= 2:
+                            PrintColor("Selected (%d, %d)"%(i, j), 'yellow')
+                        Setup()
 
 
 def EventMouseUp():
-    VAR.ButtonsMode.modePractice.clicked = False
-    VAR.ButtonsMode.modeContest.clicked = False
-    VAR.ButtonsPractice.reset.clicked = False
-    VAR.ButtonsPractice.start.clicked = False
-    VAR.ButtonsPractice.repeat.clicked = False
-    for b in VAR.ButtonsPractice.select[0]:
-        b.clicked = False
-    for b in VAR.ButtonsPractice.select[1]:
-        b.clicked = False
+    VAR.Buttons.execute.clicked = False
 
 def Main():
     pygame.init()
     VAR.clock = pygame.time.Clock()
 
-    # Create buttons
-    for i in range(1,3):
-        k = []
-        for ia in range(len(VAR.AIAgents)):
-            b = UIButton([
-                VAR.ButtonsPractice.selectPosition[0]+330*(i-1),
-                VAR.ButtonsPractice.selectPosition[1]+150+40*ia,
-                300,30],"%s"%VAR.AIAgents[ia].__name__,textFont="Small")
-            k.append(b)
-        VAR.ButtonsPractice.select.append(k)
+    l = len(VAR.AIAgents)
+    VAR.agentGamecount = np.zeros(l, dtype="int")
+    VAR.agentWinrate = np.zeros(l)
+    for i in range(l):
+        VAR.agentScores.append(list())
+        VAR.agentGames.append(list())
+        t = list()
+        for j in range(l):
+            t.append(False)
+        VAR.playTable.append(t)
 
     screen = pygame.display.set_mode((1280,720))
     pygame.display.set_icon(pygame.image.load("./Resources/logo.png"))

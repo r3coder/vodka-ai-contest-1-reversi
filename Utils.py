@@ -1,8 +1,8 @@
 
 
 class Queue:
-    def __init__(self, len=20):
-        self.cap = len
+    def __init__(self, length=20):
+        self.cap = length
         self.size = 0
         self.data = list()
     
@@ -129,10 +129,10 @@ def DrawBoard(screen, game, position=[60, 60], cellSize=60, pieceRadius=25, move
         for i in lpm:
             pygame.draw.rect(screen, COLOR.redBright, [r[0]+(i[1]+0.5)*cs-ms/2, r[1]+(i[0]+0.5)*cs-ms/2, ms,ms],0)
 
-def DrawHistory(screen, his, position=[60, 540], cell=48):
-    DrawText(screen, position, "Recent History", font="Middle")
+def DrawHistory(screen, his, position=[60, 540], cell=48, div=10):
+    DrawText(screen, position, "History", font="Middle")
 
-    for i in range(20):
+    for i in range(his.cap):
         if i >= his.size:
             continue
         if his.Get(i) == 0:
@@ -141,8 +141,8 @@ def DrawHistory(screen, his, position=[60, 540], cell=48):
             col = COLOR.white
         elif his.Get(i) == 2:
             col = COLOR.gray
-        pygame.draw.circle(screen, COLOR.black, AddList(position, [(i%10+0.5)*cell, (i//10)*cell+60]), cell*0.45)
-        pygame.draw.circle(screen, col, AddList(position, [(i%10+0.5)*cell, (i//10)*cell+60]), cell*0.4)
+        pygame.draw.circle(screen, COLOR.black, AddList(position, [(i%div+0.5)*cell, (i//div)*cell+60]), cell*0.45)
+        pygame.draw.circle(screen, col, AddList(position, [(i%div+0.5)*cell, (i//div)*cell+60]), cell*0.4)
 
 class UIButton:
     def __init__(self, rect, text, active = True, highlight = False, onMouseDown = None, onMouseUp = None, colText=COLOR.black, col = COLOR.grayBright, colClicked=COLOR.gray, colDeactive = COLOR.grayDark, colHighlight = COLOR.red, colOutline = COLOR.black, outlineWidth = 2, textFont = "Big"):
@@ -180,3 +180,21 @@ def DrawButton(screen, button):
         pygame.draw.rect(screen, button.col, button.rect, 0)
     pygame.draw.rect(screen, button.colOutline, button.rect, button.outlineWidth)
     DrawText(screen, AddList(button.rect[:2], [button.rect[2]/2, button.rect[3]/2]), button.text, col=COLOR.black, font=button.textFont, align="cm")
+
+
+
+def PrintColor(msg, col="white", end='\n'):
+    if   col=="red":
+        print('\033[31m'+msg+'\033[0m',end=end)
+    elif col=="yellow":
+        print('\033[33m'+msg+'\033[0m',end=end)
+    elif col=="blue":
+        print('\033[32m'+msg+'\033[0m',end=end)
+    elif col=="green":
+        print('\033[34m'+msg+'\033[0m',end=end)
+    elif col=="magenta":
+        print('\033[35m'+msg+'\033[0m',end=end)
+    elif col=="cyan":
+        print('\033[36m'+msg+'\033[0m',end=end)
+    else:
+        print(msg, end=end)

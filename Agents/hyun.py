@@ -1,3 +1,9 @@
+"""
+Agent name: hyun
+Contact : hyunsj05@dgist.ac.kr
+"""
+
+
 class hyun:
     def __init__(self):
         self.qq=True

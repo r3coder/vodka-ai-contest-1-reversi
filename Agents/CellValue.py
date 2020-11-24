@@ -1,6 +1,6 @@
 """
 Agent name: Cell Value
-Writer : Lee Seunghyun
+Writer : Seunghyun Lee
 Contact : coder@dgist.ac.kr
 Description : Calculates cell values, and place pieces based on that values
 """
