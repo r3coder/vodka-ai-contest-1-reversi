@@ -233,8 +233,8 @@ def Execute():
         else:
             VAR.playTable[VAR.playerIndex[1]][VAR.playerIndex[2]] = True
             VAR.state = 0
-    elif VAR.state == 5: # Sleep for 1 second and return to initialing       
-        # time.sleep(1)
+    elif VAR.state == 5: # Sleep for 0.5 second and return to initialing       
+        time.sleep(0.5)
         VAR.state = 2
 
 
