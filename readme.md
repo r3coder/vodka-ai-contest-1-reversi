@@ -6,12 +6,12 @@ DGIST의 구성원이라면 누구나 참가할 수 있는 게임 AI 대회입�
 
 ## 대회 진행 결과
 
-(Result.png)
+![Result](https://github.com/r3coder/vodka-ai-contest-1-reversi/blob/master/Resources/Result.png)
 
 우승: WhopperHunterNaYeon
 준우승: ppp
 
-대회 진행 로그는 
+대회 진행 로그는 log.json에 기록되어 있습니다.
 ### 리버시에 대해서
 Renegade, 뒤집기, 오셀로 등 여러 이름으로 불리는 게임입니다.
 
