@@ -1,9 +1,4 @@
-"""
-Agent name: Predictor
-Writer : -
-Contact : -
-Description : -
-"""
+
 """
 @ Author Hyun Kim, shi5857@dgist.ac.kr
 @ Date 04 / 11 / 20
@@ -119,7 +114,7 @@ class Predictor:
         ): #It require game argument?
         self.depth = 1
 
-    def Initalize(
+    def Initialize(
         self,
         game,
         player: int

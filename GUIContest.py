@@ -14,19 +14,8 @@ from Utils import Queue, COLOR, AddList, MouseCheckRect, DrawTextMultiline, Draw
 import ReversiGame
 
 
-from Agents import CellValue
-from Agents import Nayeon
-from Agents import WhopperHunterNaYeon
-from Agents import hyun
-from Agents import LHM
-from Agents import ppp
-from Agents import Predictor
+from Agents import CellValue, Nayeon, WhopperHunterNaYeon, hyun, LHM, ppp, Predictor
 
-def Start():
-    if DEBUG_LEVEL >= 2:
-        PrintColor("Start Called", 'yellow')
-    Reset()
-    VAR.state = 1
 
 def MouseDownExecute():
     if DEBUG_LEVEL >= 2:
@@ -48,7 +37,7 @@ class VAR:
     logfile = open("log.json", "w")
 
     # Contest Setup
-    playCount = 50
+    playCount = 40
     playCurrent = 0
     playTable = list()
 
