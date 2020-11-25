@@ -20,6 +20,7 @@ from Agents import WhopperHunterNaYeon
 from Agents import hyun
 from Agents import LHM
 from Agents import ppp
+from Agents import Predictor
 
 def Start():
     if DEBUG_LEVEL >= 2:
@@ -43,6 +44,9 @@ class Player:
 class VAR:
     game = ReversiGame.Game()
 
+    # Log
+    logfile = open("log.json", "w")
+
     # Contest Setup
     playCount = 50
     playCurrent = 0
@@ -57,12 +61,12 @@ class VAR:
     timeSeg = [None, [], []]
     miss = [None, 0, 0]
     
-    AIAgents = [CellValue.CellValue(),
-                Nayeon.Nayeon(),
+    AIAgents = [Nayeon.Nayeon(),
                 WhopperHunterNaYeon.WhopperHunterNaYeon(),
                 hyun.hyun(),
                 LHM.LHM(),
-                ppp.ppp()]
+                ppp.ppp(),
+                Predictor.Predictor()]
     
     agentWinrate = None # Winrate
     agentGamecount = None # Game done
@@ -185,14 +189,16 @@ def Finish():
 
     bs -= min(VAR.miss[1], 5)
     ws -= min(VAR.miss[2], 5)
-    bs -= min(max(sum(VAR.timeSeg[1]), 0), 5)
-    ws -= min(max(sum(VAR.timeSeg[2]), 0), 5)
+    bs -= min(max(sum(VAR.timeSeg[1])/2, 0), 5)
+    ws -= min(max(sum(VAR.timeSeg[2])/2, 0), 5)
     VAR.agentGamecount[bp] += 1
     VAR.agentGamecount[wp] += 1
     VAR.agentScores[bp].append(bs)
     VAR.agentScores[wp].append(ws)
 
     UpdateWinrate()
+
+    VAR.logfile.write('\t\t{"Player1":"%s", "Player2":"%s", "History":"%s"},\n'%(type(VAR.AIAgents[VAR.playerIndex[1]]).__name__,type(VAR.AIAgents[VAR.playerIndex[2]]).__name__,VAR.game.history))
 
 
 def Execute():
@@ -330,6 +336,12 @@ def Main():
     pygame.display.set_caption("VODKA Reversi AI Contest")
     running = True
 
+    # Writing to log
+    l = list()
+    for i in range(len(VAR.AIAgents)):
+        l.append(type(VAR.AIAgents[i]).__name__)
+    VAR.logfile.write('{\n\t"Agents":%s,\n\t"History": [\n'%str(l).replace("'",'"'))
+
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -341,6 +353,9 @@ def Main():
         VAR.clock.tick(120)
         Draw(screen)
         Execute()
+
+    VAR.logfile.write('\t]\n}')
+
 
 if __name__=="__main__":
     Main()

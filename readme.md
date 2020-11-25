@@ -4,6 +4,14 @@ DGIST의 구성원이라면 누구나 참가할 수 있는 게임 AI 대회입�
 
 본 대회는 [DGIST의 게임제작동아리 보드카게임즈](http://vodkagames.net)의 후원을 받아 열리는 대회입니다.
 
+## 대회 진행 결과
+
+(Result.png)
+
+우승: WhopperHunterNaYeon
+준우승: ppp
+
+대회 진행 로그는 
 ### 리버시에 대해서
 Renegade, 뒤집기, 오셀로 등 여러 이름으로 불리는 게임입니다.
 
