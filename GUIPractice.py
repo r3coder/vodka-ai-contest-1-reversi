@@ -14,7 +14,7 @@ import ReversiGame
 ##############################
 # Include AI here
 
-from Agents import ExampleRandom, ExampleGreedy, CellValue, Nayeon, WhopperHunterNaYeon, hyun, LHM, ppp
+from Agents import ExampleRandom, ExampleGreedy, CellValue, Nayeon, WhopperHunterNaYeon, hyun, LHM, ppp, Predictor
 # from Agents import Predictor
 
 ##############################
@@ -106,7 +106,8 @@ class VAR:
                 Nayeon.Nayeon,
                 WhopperHunterNaYeon.WhopperHunterNaYeon,
                 hyun.hyun,
-                LHM.LHM]
+                LHM.LHM,
+                Predictor.Predictor]
     
     ##############################
 

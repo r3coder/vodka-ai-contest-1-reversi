@@ -14,18 +14,7 @@ from Utils import Queue, COLOR, AddList, MouseCheckRect, DrawTextMultiline, Draw
 import ReversiGame
 
 
-from Agents import CellValue
-from Agents import Nayeon
-from Agents import WhopperHunterNaYeon
-from Agents import hyun
-from Agents import LHM
-from Agents import ppp
-
-def Start():
-    if DEBUG_LEVEL >= 2:
-        PrintColor("Start Called", 'yellow')
-    Reset()
-    VAR.state = 1
+from Agents import CellValue, Nayeon, WhopperHunterNaYeon, hyun, LHM, ppp, Predictor
 
 def MouseDownExecute():
     if DEBUG_LEVEL >= 2:
@@ -44,7 +33,7 @@ class VAR:
     game = ReversiGame.Game()
 
     # Contest Setup
-    playCount = 50
+    playCount = 40
     playCurrent = 0
     playTable = list()
 
@@ -57,12 +46,12 @@ class VAR:
     timeSeg = [None, [], []]
     miss = [None, 0, 0]
     
-    AIAgents = [CellValue.CellValue(),
-                Nayeon.Nayeon(),
+    AIAgents = [Nayeon.Nayeon(),
                 WhopperHunterNaYeon.WhopperHunterNaYeon(),
                 hyun.hyun(),
                 LHM.LHM(),
-                ppp.ppp()]
+                ppp.ppp(),
+                Predictor.Predictor()]
     
     agentWinrate = None # Winrate
     agentGamecount = None # Game done
@@ -185,8 +174,8 @@ def Finish():
 
     bs -= min(VAR.miss[1], 5)
     ws -= min(VAR.miss[2], 5)
-    bs -= min(max(sum(VAR.timeSeg[1]), 0), 5)
-    ws -= min(max(sum(VAR.timeSeg[2]), 0), 5)
+    bs -= min(max(sum(VAR.timeSeg[1])/2, 0), 5)
+    ws -= min(max(sum(VAR.timeSeg[2])/2, 0), 5)
     VAR.agentGamecount[bp] += 1
     VAR.agentGamecount[wp] += 1
     VAR.agentScores[bp].append(bs)
